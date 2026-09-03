@@ -1,1 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>What Does Animal Re-Identification Learn?</title>
+<meta name="description" content="Linear biological concepts (sex, age) emerge in a gorilla Re-ID Vision Transformer trained without concept supervision — and are causally used by the model.">
 
+<meta property="og:title" content="What Does Animal Re-Identification Learn?">
+<meta property="og:description" content="Linear biological concepts (sex, age) emerge in a gorilla Re-ID Vision Transformer trained without concept supervision — and are causally used by the model.">
+<meta property="og:image" content="assets/img/xda_heatmap_teaser.png">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+
+<style>
+  :root{
+    --text: #1c1c1a;
+    --muted: #5b5b56;
+    --faint: #8a8a84;
+    --bg: #fdfcfa;
+    --panel: #ffffff;
+    --line: #e4e1d9;
+    --accent: #367dbd;
+    --accent-dark: #2a5f8f;
+  }
+
+  *{ box-sizing: border-box; }
+
+  html,body{
+    margin:0;
+    padding:0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,h2,h3{
+    font-family: ui-serif, Georgia, "Times New Roman", serif;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--text);
+  }
+
+  a{ color: var(--accent); text-decoration: none; }
+  a:hover{ text-decoration: underline; }
+
+  .wrap{
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  header.hero{
+    padding: 72px 0 40px;
+    text-align: center;
+  }
+
+  .badge{
+    display: inline-block;
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--accent-dark);
+    background: #eaf2f9;
+    border: 1px solid #d3e4f2;
+    border-radius: 999px;
+    padding: 5px 14px;
+    margin-bottom: 22px;
+  }
+
+  h1.title{
+    font-size: 2.15rem;
+    line-height: 1.28;
+    margin: 0 auto 28px;
+    max-width: 720px;
+  }
+  h1.title .subtitle{
+    display:block;
+    font-size: 0.62em;
+    font-weight: 400;
+    color: var(--muted);
+    margin-top: 10px;
+  }
+
+  .authors{
+    font-size: 1.02rem;
+    margin: 0 auto 6px;
+    max-width: 640px;
+    color: var(--text);
+  }
+  .authors sup{ font-size: 0.7em; }
+
+  .affiliations{
+    font-size: 0.9rem;
+    color: var(--muted);
+    margin: 0 0 4px;
+  }
+  .affiliations sup{ font-size: 0.75em; }
+
+  .equal-note{
+    font-size: 0.8rem;
+    color: var(--faint);
+    margin: 0 0 30px;
+  }
+
+  .buttons{
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
+  .btn{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 0.92rem;
+    font-weight: 500;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--text);
+  }
+
+  .btn.disabled{
+    color: var(--faint);
+    background: #f3f2ee;
+    cursor: not-allowed;
+    user-select: none;
+  }
+  .btn.disabled .soon{
+    font-size: 0.78rem;
+    color: var(--faint);
+    font-weight: 400;
+  }
+  .btn svg{ width: 18px; height: 18px; fill: currentColor; flex-shrink: 0; }
+
+  main{ padding-bottom: 20px; }
+
+  figure.teaser{
+    margin: 8px 0 48px;
+  }
+  figure.teaser img{
+    width: 100%;
+    height: auto;
+    display: block;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: #fff;
+  }
+  figcaption{
+    font-size: 0.86rem;
+    color: var(--muted);
+    margin-top: 12px;
+    line-height: 1.55;
+  }
+  figcaption b{ color: var(--text); }
+
+  hr.divider{
+    border: none;
+    border-top: 1px solid var(--line);
+    margin: 48px 0;
+  }
+
+  section h2{
+    font-size: 1.55rem;
+    margin: 0 0 20px;
+  }
+
+  section p{
+    font-size: 1.02rem;
+    color: var(--text);
+    margin: 0 0 18px;
+  }
+
+  .lede{
+    font-size: 1.08rem;
+    color: var(--muted);
+    margin-bottom: 28px;
+  }
+
+  .finding{
+    margin: 0 0 44px;
+    padding-top: 4px;
+  }
+  .finding h3{
+    font-size: 1.12rem;
+    margin: 0 0 10px;
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+  }
+  .finding h3 .num{
+    color: var(--accent);
+    font-family: ui-serif, Georgia, serif;
+    font-size: 0.95em;
+  }
+  .finding p{ font-size: 0.98rem; margin-bottom: 16px; }
+
+  .fig-grid{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    align-items: start;
+    margin: 18px 0 8px;
+  }
+  .fig-grid.single{
+    grid-template-columns: 1fr;
+    max-width: 420px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .fig-grid figure{ margin: 0; }
+  .fig-grid img{
+    width: 100%;
+    height: auto;
+    display: block;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 10px;
+  }
+
+  @media (max-width: 640px){
+    .fig-grid{ grid-template-columns: 1fr; }
+    header.hero{ padding: 48px 0 32px; }
+    h1.title{ font-size: 1.6rem; }
+  }
+
+  #citation .box{
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 18px 20px;
+    font-size: 0.95rem;
+    color: var(--muted);
+  }
+
+  footer{
+    border-top: 1px solid var(--line);
+    padding: 32px 0 60px;
+    text-align: center;
+    color: var(--faint);
+    font-size: 0.85rem;
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="badge">Under review</span>
+
+    <h1 class="title">
+      What Does Animal Re-Identification Learn?
+      <span class="subtitle">Linear Biological Concepts and Their Origins in Visual Representations</span>
+    </h1>
+
+    <p class="authors">
+      Robert&nbsp;Nolting<sup>1,*</sup>,
+      Alexandra&nbsp;Schild<sup>1,*</sup>,
+      Moritz&nbsp;Weckbecker<sup>2</sup>,
+      Maximilian&nbsp;Schall<sup>1</sup>,
+      Gerard&nbsp;de&nbsp;Melo<sup>1</sup>
+    </p>
+    <p class="affiliations">
+      <sup>1</sup>Hasso Plattner Institute, Germany &nbsp;&nbsp;&nbsp; <sup>2</sup>Fraunhofer HHI, Germany
+    </p>
+    <p class="equal-note"><sup>*</sup>Equal contribution</p>
+
+    <div class="buttons">
+      <span class="btn disabled" title="Code release coming soon">
+        <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+        Github Code <span class="soon">&mdash; coming soon</span>
+      </span>
+      <span class="btn disabled" title="Preprint coming soon">
+        <svg viewBox="0 0 16 16"><path d="M2 1h9l3 3v11a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1zm8 1v3h3l-3-3zM4 8h8v1H4V8zm0 2.5h8v1H4v-1zM4 5.5h4v1H4v-1z"/></svg>
+        Arxiv Paper <span class="soon">&mdash; coming soon</span>
+      </span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <figure class="teaser">
+    <picture>
+      <source srcset="assets/img/xda_heatmap_teaser.webp" type="image/webp">
+      <img src="assets/img/xda_heatmap_teaser.png" alt="DualXDA feature attribution heatmap for a female gorilla test image, with the training images that pull the sex prediction most towards female and most towards male.">
+    </picture>
+    <figcaption>
+      <b>Feature attribution for a female test image, produced by DualXDA.</b>
+      The middle image shows a female gorilla correctly predicted by our sex probe, with an LRP heatmap showing which image regions drove the prediction. The right side shows training images that pulled the prediction most toward <i>female</i>, the left side toward <i>male</i>. Relevance concentrates on facial and anatomical regions &mdash; but also on the nursing infant, suggesting a potential shortcut.
+    </figcaption>
+  </figure>
+
+  <hr class="divider">
+
+  <section id="problem">
+    <h2>Problem</h2>
+    <p>
+      Conservation increasingly relies on motion-triggered camera traps, which collect far more wildlife
+      imagery than experts can manually review. Animal re-identification (Re-ID) turns this data deluge into
+      usable information about individuals and populations &mdash; but as Re-ID moves to deep, black-box Vision
+      Transformers, understanding <i>why</i> a model identifies a given animal matters just as much as how
+      accurately it does so, especially for long-term, real-world conservation monitoring.
+    </p>
+    <p>
+      Modern Re-ID models are trained with metric-learning objectives such as triplet loss, which only ever
+      see identity labels &mdash; never sex, age, or any other biological attribute, and require no classification
+      head at all. This raises a basic question: can a model trained solely to distinguish individual animals
+      nevertheless organize its internal representation along biologically meaningful axes such as sex and age?
+      Or does it rely on cues that a domain expert would not recognize as meaningful evidence?
+    </p>
+    <p>
+      We study this question using a DINOv3 Vision Transformer fine-tuned with a triplet-margin loss to
+      re-identify individual Western lowland gorillas. Because the model receives no concept supervision
+      whatsoever, any biological structure we uncover in its representation must have emerged purely as a
+      side effect of learning to tell individuals apart &mdash; making it a clean test case for whether
+      interpretability methods can recover, and causally verify, biologically meaningful structure inside a
+      metric-learning model.
+    </p>
+  </section>
+
+  <hr class="divider">
+
+  <section id="findings">
+    <h2>Findings</h2>
+    <p class="lede">
+      Using linear concept probing, activation steering, and data attribution, we find that biologically
+      meaningful concepts emerge as structured, causal, and highly redundant components of the Re-ID
+      representation &mdash; and that attribution exposes both useful diagnostics and a potentially misleading
+      shortcut.
+    </p>
+
+    <div class="finding">
+      <h3><span class="num">1.</span> Linear concepts emerge under metric learning</h3>
+      <p>
+        A ViT trained solely to re-identify individual gorillas encodes sex and age as approximately linear
+        directions in its residual stream, reaching up to <b>0.91 AUROC</b> at the image level (0.97 at the
+        identity level) on individuals never seen during probing. Separability grows in later layers, and
+        &mdash; despite being fit on just 46 images, one per training individual &mdash; the concept remains
+        recoverable when the probe sees only a single image per individual, ruling out simple memorization.
+      </p>
+      <div class="fig-grid">
+        <figure>
+          <img src="assets/figures/sex_layerwise_auroc_all_types.svg" alt="Layerwise AUROC for sex and age probes across probe types.">
+          <figcaption>Concept separability by layer, for logistic regression, SVM, and difference-in-means probes.</figcaption>
+        </figure>
+        <figure>
+          <img src="assets/figures/single_image_comparison_auroc.svg" alt="Concept separability using the full training set versus one image per individual.">
+          <figcaption>Full training set vs. one image per individual. Shading = 1 s.d. over 32 random samplings.</figcaption>
+        </figure>
+      </div>
+    </div>
+
+    <div class="finding">
+      <h3><span class="num">2.</span> The sex direction is causally used by the model</h3>
+      <p>
+        Linear decodability only shows that sex information is <i>present</i>. To test whether it is actually
+        <i>used</i>, we steer a query's activations toward the opposite-sex direction at an intermediate layer.
+        At intervention strength &alpha;=16, this flips <b>24%</b> of nearest-neighbor identity predictions toward
+        the opposite sex &mdash; versus &lt;4% for random directions &mdash; while under 1% of steered queries leave
+        the model's normal embedding manifold. Stronger interventions increase the apparent effect but also
+        collapse the representation, a failure mode we detect with an explicit degradation diagnostic.
+      </p>
+      <div class="fig-grid">
+        <figure>
+          <img src="assets/figures/steering_sex_layer.svg" alt="Steering effect and embedding degradation by layer at alpha=16.">
+          <figcaption>Steering effect vs. degradation by layer, at &alpha;=16.</figcaption>
+        </figure>
+        <figure>
+          <img src="assets/figures/steering_sex_alpha.svg" alt="Steering effect and embedding degradation by intervention strength at layer 9, with random-direction control.">
+          <figcaption>Steering effect by intervention strength &alpha; at layer 9, with a random-direction control.</figcaption>
+        </figure>
+      </div>
+    </div>
+
+    <div class="finding">
+      <h3><span class="num">3.</span> Fine-tuning reshapes concepts &mdash; it doesn't create them</h3>
+      <p>
+        Sex is already strongly linearly decodable in the <i>off-the-shelf</i>, non-fine-tuned DINOv3 backbone,
+        with AUROCs comparable to the Re-ID-fine-tuned model. Probes transfer well between pretrained and
+        fine-tuned activations through most of the network, but directions increasingly diverge near the
+        output &mdash; cosine similarity drops from &sim;0.95 in early layers to &sim;0.25 in the final layer.
+        Re-ID fine-tuning therefore <i>relocates</i> an existing biological representation rather than inventing
+        one from scratch.
+      </p>
+      <div class="fig-grid single">
+        <figure>
+          <img src="assets/figures/transfer_layerwise_auroc.svg" alt="Cross-model probe transfer between fine-tuned and pretrained-only activations, by layer.">
+          <figcaption>Cross-model probe transfer (fine-tuned&rarr;pretrained and pretrained&rarr;fine-tuned) vs. in-domain probes, by layer.</figcaption>
+        </figure>
+      </div>
+    </div>
+
+    <div class="finding">
+      <h3><span class="num">4.</span> A graded biological axis, redundantly encoded</h3>
+      <p>
+        Rather than a binary male&ndash;female split, per-individual probe scores trace a continuous axis:
+        silverbacks and adult females anchor opposite extremes, while visually ambiguous blackbacks cluster in
+        between &mdash; mirroring the real difficulty primatologists face when sexing subadult gorillas. Data
+        attribution shows blackbacks are <b>4&times;</b> over-represented among the training images that
+        constitute this direction (support vectors / k90), yet identity-level leave-one-out retraining shows no
+        single individual is essential &mdash; removing any one changes held-out AUROC by at most 0.016. The
+        concept is disproportionately <i>shaped</i> by difficult individuals, but redundantly encoded across
+        the population.
+      </p>
+      <div class="fig-grid">
+        <figure>
+          <img src="assets/figures/fig_identity_logits_layer_8.svg" alt="Mean probe logit for each held-out individual, forming a graded axis from silverbacks to adult females.">
+          <figcaption>Mean probe logit per held-out individual: a graded axis, not a binary split.</figcaption>
+        </figure>
+        <figure>
+          <img src="assets/figures/bb_vs_sb_enrichment.svg" alt="Enrichment of silverbacks and blackbacks among the examples constituting the sex probe, by layer.">
+          <figcaption>Blackback enrichment among constituting examples grows with network depth.</figcaption>
+        </figure>
+      </div>
+    </div>
+
+    <div class="finding">
+      <h3><span class="num">5.</span> Attribution surfaces a plausible shortcut</h3>
+      <p>
+        Propagating attribution to pixel-level relevance (DualXDA with AttnLRP) shows the sex probe mostly
+        relies on facial and other sex-associated anatomical regions, consistent with genuine Re-ID cues. But
+        for images of females nursing an infant, relevance also concentrates on the infant itself &mdash; a
+        biologically plausible correlate of sex that could nonetheless become a spurious shortcut
+        (see the teaser figure above).
+      </p>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <section id="citation">
+    <h2>Citation</h2>
+    <div class="box">
+      This work is currently under review. A BibTeX entry and a link to the preprint will be
+      added here once they are publicly available.
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    Robert Nolting, Alexandra Schild, Moritz Weckbecker, Maximilian Schall, Gerard de Melo &mdash;
+    Hasso Plattner Institute &amp; Fraunhofer HHI, 2026
+  </div>
+</footer>
+
+</body>
+</html>
