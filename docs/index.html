@@ -57,19 +57,6 @@
     text-align: center;
   }
 
-  .badge{
-    display: inline-block;
-    font-size: 0.78rem;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: var(--accent-dark);
-    background: #eaf2f9;
-    border: 1px solid #d3e4f2;
-    border-radius: 999px;
-    padding: 5px 14px;
-    margin-bottom: 22px;
-  }
-
   h1.title{
     font-size: 2.15rem;
     line-height: 1.28;
@@ -230,13 +217,40 @@
     h1.title{ font-size: 1.6rem; }
   }
 
-  #citation .box{
+  #citation .bibtex-wrap{
+    position: relative;
+  }
+  #citation pre{
     background: var(--panel);
     border: 1px solid var(--line);
     border-radius: 8px;
-    padding: 18px 20px;
-    font-size: 0.95rem;
+    padding: 20px 22px;
+    margin: 0;
+    overflow-x: auto;
+    font-size: 0.85rem;
+    line-height: 1.55;
+    color: var(--text);
+  }
+  #citation code{
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    white-space: pre;
+  }
+  #citation .copy-btn{
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 0.78rem;
     color: var(--muted);
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 5px 10px;
+    cursor: pointer;
+  }
+  #citation .copy-btn:hover{
+    color: var(--text);
+    border-color: var(--faint);
   }
 
   footer{
@@ -252,8 +266,6 @@
 
 <header class="hero">
   <div class="wrap">
-    <span class="badge">Under review</span>
-
     <h1 class="title">
       What Does Animal Re-Identification Learn?
       <span class="subtitle">Linear Biological Concepts and Their Origins in Visual Representations</span>
@@ -437,9 +449,16 @@
 
   <section id="citation">
     <h2>Citation</h2>
-    <div class="box">
-      This work is currently under review. A BibTeX entry and a link to the preprint will be
-      added here once they are publicly available.
+    <div class="bibtex-wrap">
+      <button class="copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('bibtex').innerText); this.innerText='Copied!'; setTimeout(() => this.innerText='Copy', 1500);">Copy</button>
+      <pre><code id="bibtex">@article{nolting2026animalreid,
+  title   = {What Does Animal Re-Identification Learn? Linear Biological
+             Concepts and Their Origins in Visual Representations},
+  author  = {Nolting, Robert and Schild, Alexandra and Weckbecker, Moritz and
+             Schall, Maximilian and de Melo, Gerard},
+  journal = {arXiv preprint},
+  year    = {2026}
+}</code></pre>
     </div>
   </section>
 
