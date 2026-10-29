@@ -1,0 +1,39 @@
+[project]
+name = "animal-reid-concepts"
+version = "0.1.0"
+description = "What Does Animal Re-Identification Learn? Linear Biological Concepts and Their Origins in Visual Representations"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "matplotlib>=3.10.9",
+    "numpy",
+    "pandas",
+    "pillow",
+    "scikit-learn>=1.8.0",
+    "scipy",
+    "timm",
+    "torch",
+    "torchvision",
+    # DualXDA: the SVM probe (src/attribution/dualxda.py) and the XDA heatmaps
+    # (src/attribution/xda.py). dualxda_skl is the patched LIBLINEAR that exposes
+    # the dual variables -- the stock sklearn one does not.
+    "dualxda",
+    "dualxda-skl",
+    "lxt",
+    "zennit",
+    "tqdm",
+]
+
+# Not an installable package: everything runs as `python -m src.<stage>` from
+# the repo root, so uv only has to build the environment.
+[tool.uv]
+package = false
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu128" }
+torchvision = { index = "pytorch-cu128" }
+dualxda = { path = "dualxda-pip", editable = true }  # git submodule; clone with --recurse-submodules
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true

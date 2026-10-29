@@ -1,0 +1,3 @@
+[submodule "dualxda-pip"]
+	path = dualxda-pip
+	url = https://github.com/gumityolcu/dualxda-pip.git
